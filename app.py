@@ -13,160 +13,294 @@ st.set_page_config(
 # ─── Custom CSS ────────────────────────────────────────────────────────────────
 st.markdown("""
 <style>
-@import url('https://fonts.googleapis.com/css2?family=DM+Serif+Display&family=DM+Mono:wght@400;500&family=Manrope:wght@400;500;600&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=DM+Mono:wght@400;500&family=Manrope:wght@400;500;600;700&display=swap');
 
 *, *::before, *::after { box-sizing: border-box; }
 
 html, body, [data-testid="stAppViewContainer"] {
-    background-color: #0f0f0f;
+    background-color: #0c0c0c;
     color: #e8e4dc;
     font-family: 'Manrope', sans-serif;
 }
 
 [data-testid="stAppViewContainer"] {
     background:
-        radial-gradient(ellipse at 10% 20%, rgba(180,140,90,0.07) 0%, transparent 55%),
-        radial-gradient(ellipse at 90% 80%, rgba(100,160,130,0.06) 0%, transparent 55%),
-        #0f0f0f;
+        radial-gradient(ellipse at 15% 10%, rgba(200,169,110,0.08) 0%, transparent 50%),
+        radial-gradient(ellipse at 85% 90%, rgba(100,160,130,0.05) 0%, transparent 50%),
+        radial-gradient(ellipse at 50% 50%, rgba(255,255,255,0.01) 0%, transparent 80%),
+        #0c0c0c;
 }
 
 [data-testid="stHeader"] { background: transparent; }
 [data-testid="stSidebar"] { display: none; }
-.block-container { max-width: 780px; padding: 3rem 2rem 4rem; }
+.block-container { max-width: 800px; padding: 2.5rem 2rem 5rem; }
 
-/* Title */
+/* ── Title ── */
 .title-block {
     text-align: center;
-    margin-bottom: 2.5rem;
-    padding-top: 1rem;
+    margin-bottom: 3rem;
+    padding-top: 1.5rem;
+}
+.title-badge {
+    display: inline-block;
+    font-family: 'DM Mono', monospace;
+    font-size: 0.65rem;
+    color: #c8a96e;
+    letter-spacing: 0.22em;
+    text-transform: uppercase;
+    border: 1px solid rgba(200,169,110,0.3);
+    border-radius: 20px;
+    padding: 0.3rem 0.9rem;
+    margin-bottom: 1rem;
 }
 .title-block h1 {
     font-family: 'DM Serif Display', serif;
-    font-size: 3rem;
+    font-size: 3.4rem;
     font-weight: 400;
     color: #e8e4dc;
     letter-spacing: -0.02em;
-    margin: 0 0 0.3rem;
-    line-height: 1.1;
+    margin: 0 0 0.2rem;
+    line-height: 1.05;
 }
-.title-block .accent { color: #c8a96e; }
-.title-block p {
+.title-block h1 em {
+    font-style: italic;
+    color: #c8a96e;
+}
+.title-block .subtitle {
     font-family: 'DM Mono', monospace;
-    font-size: 0.75rem;
-    color: #5a5a5a;
-    letter-spacing: 0.15em;
+    font-size: 0.72rem;
+    color: #444;
+    letter-spacing: 0.14em;
     text-transform: uppercase;
-    margin: 0;
+    margin: 0.8rem 0 0;
 }
 .divider {
-    width: 40px;
-    height: 1px;
-    background: #c8a96e;
+    width: 1px;
+    height: 32px;
+    background: linear-gradient(to bottom, transparent, #c8a96e, transparent);
     margin: 1rem auto;
-    opacity: 0.6;
 }
 
-/* Input area */
+/* ── Section label ── */
+.section-label {
+    font-family: 'DM Mono', monospace;
+    font-size: 0.65rem;
+    color: #444;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    margin-bottom: 0.5rem;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+.section-label::after {
+    content: '';
+    flex: 1;
+    height: 1px;
+    background: #1e1e1e;
+}
+
+/* ── Input area ── */
 .stTextArea textarea {
-    background: #191919 !important;
-    border: 1px solid #2a2a2a !important;
-    border-radius: 8px !important;
+    background: #131313 !important;
+    border: 1px solid #1f1f1f !important;
+    border-radius: 10px !important;
     color: #e8e4dc !important;
     font-family: 'Manrope', sans-serif !important;
-    font-size: 0.92rem !important;
-    line-height: 1.7 !important;
-    padding: 1rem !important;
-    transition: border-color 0.2s;
+    font-size: 0.93rem !important;
+    line-height: 1.75 !important;
+    padding: 1.1rem 1.2rem !important;
+    transition: border-color 0.25s, box-shadow 0.25s !important;
 }
 .stTextArea textarea:focus {
-    border-color: #c8a96e !important;
-    box-shadow: 0 0 0 1px rgba(200,169,110,0.2) !important;
+    border-color: rgba(200,169,110,0.5) !important;
+    box-shadow: 0 0 0 3px rgba(200,169,110,0.07) !important;
 }
+.stTextArea textarea::placeholder { color: #333 !important; }
 
-/* Slider */
-.stSlider [data-baseweb="slider"] { padding: 0.5rem 0; }
-.stSlider .st-emotion-cache-1cxogv { color: #c8a96e !important; }
+/* ── Slider ── */
+.stSlider [data-baseweb="slider"] { padding: 0.4rem 0; }
 label[data-testid="stWidgetLabel"] {
-    color: #9a9a9a !important;
-    font-size: 0.8rem !important;
+    color: #555 !important;
+    font-size: 0.72rem !important;
     font-family: 'DM Mono', monospace !important;
-    letter-spacing: 0.08em;
-    text-transform: uppercase;
-}
-
-/* Button */
-.stButton button {
-    background: #c8a96e !important;
-    color: #0f0f0f !important;
-    border: none !important;
-    border-radius: 6px !important;
-    font-family: 'DM Mono', monospace !important;
-    font-size: 0.78rem !important;
-    font-weight: 500 !important;
     letter-spacing: 0.12em !important;
     text-transform: uppercase !important;
-    padding: 0.65rem 2rem !important;
+}
+
+/* ── Button ── */
+.stButton button {
+    background: linear-gradient(135deg, #c8a96e 0%, #b8924a 100%) !important;
+    color: #0c0c0c !important;
+    border: none !important;
+    border-radius: 8px !important;
+    font-family: 'DM Mono', monospace !important;
+    font-size: 0.75rem !important;
+    font-weight: 500 !important;
+    letter-spacing: 0.14em !important;
+    text-transform: uppercase !important;
+    padding: 0.7rem 2rem !important;
     width: 100% !important;
     cursor: pointer !important;
-    transition: opacity 0.2s !important;
+    transition: opacity 0.2s, transform 0.15s !important;
+    box-shadow: 0 4px 20px rgba(200,169,110,0.15) !important;
 }
-.stButton button:hover { opacity: 0.85 !important; }
+.stButton button:hover {
+    opacity: 0.88 !important;
+    transform: translateY(-1px) !important;
+}
+.stButton button:active { transform: translateY(0) !important; }
 
-/* Output card */
-.summary-card {
-    background: #141414;
-    border: 1px solid #242424;
-    border-left: 3px solid #c8a96e;
-    border-radius: 8px;
-    padding: 1.5rem 1.8rem;
-    margin-top: 1.5rem;
-    font-size: 0.97rem;
-    line-height: 1.85;
-    color: #ddd8ce;
-    font-family: 'Manrope', sans-serif;
+/* ── Output section ── */
+.output-wrapper {
+    margin-top: 2rem;
+    animation: fadeUp 0.4s ease;
 }
-.summary-label {
-    font-family: 'DM Mono', monospace;
-    font-size: 0.68rem;
-    color: #c8a96e;
-    letter-spacing: 0.18em;
-    text-transform: uppercase;
+@keyframes fadeUp {
+    from { opacity: 0; transform: translateY(12px); }
+    to   { opacity: 1; transform: translateY(0); }
+}
+
+.summary-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
     margin-bottom: 0.8rem;
 }
+.summary-tag {
+    font-family: 'DM Mono', monospace;
+    font-size: 0.65rem;
+    color: #c8a96e;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+}
+.sentence-badge {
+    font-family: 'DM Mono', monospace;
+    font-size: 0.62rem;
+    color: #555;
+    background: #161616;
+    border: 1px solid #222;
+    border-radius: 12px;
+    padding: 0.2rem 0.7rem;
+    letter-spacing: 0.08em;
+}
 
-/* Stats row */
+.summary-card {
+    background: #111;
+    border: 1px solid #1e1e1e;
+    border-left: 3px solid #c8a96e;
+    border-radius: 10px;
+    padding: 1.6rem 1.8rem;
+    font-size: 0.97rem;
+    line-height: 1.9;
+    color: #d8d3c8;
+    font-family: 'Manrope', sans-serif;
+    position: relative;
+}
+.summary-card .sent {
+    display: inline;
+}
+.summary-card .sent + .sent::before {
+    content: ' ';
+}
+.sent-num {
+    font-family: 'DM Mono', monospace;
+    font-size: 0.6rem;
+    color: #c8a96e;
+    opacity: 0.6;
+    vertical-align: super;
+    margin-right: 2px;
+}
+
+/* ── Stats ── */
 .stats-row {
-    display: flex;
-    gap: 1rem;
-    margin-top: 1.2rem;
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 0.75rem;
+    margin-top: 1rem;
 }
 .stat-box {
-    flex: 1;
-    background: #111;
-    border: 1px solid #222;
-    border-radius: 6px;
-    padding: 0.8rem 1rem;
+    background: #0e0e0e;
+    border: 1px solid #1a1a1a;
+    border-radius: 8px;
+    padding: 1rem 0.8rem;
     text-align: center;
+    transition: border-color 0.2s;
 }
+.stat-box:hover { border-color: rgba(200,169,110,0.2); }
 .stat-num {
     font-family: 'DM Serif Display', serif;
-    font-size: 1.6rem;
+    font-size: 1.7rem;
     color: #c8a96e;
     display: block;
     line-height: 1;
 }
 .stat-label {
     font-family: 'DM Mono', monospace;
-    font-size: 0.62rem;
-    color: #555;
-    letter-spacing: 0.12em;
+    font-size: 0.58rem;
+    color: #3a3a3a;
+    letter-spacing: 0.1em;
     text-transform: uppercase;
     display: block;
-    margin-top: 0.3rem;
+    margin-top: 0.35rem;
 }
 
-/* Error */
-.err { color: #e07070; font-family: 'DM Mono', monospace; font-size: 0.82rem; }
+/* ── How it works ── */
+.how-it-works {
+    margin-top: 3rem;
+    border-top: 1px solid #161616;
+    padding-top: 2rem;
+}
+.steps-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 1rem;
+    margin-top: 1rem;
+}
+.step-card {
+    background: #0e0e0e;
+    border: 1px solid #1a1a1a;
+    border-radius: 8px;
+    padding: 1.1rem 1rem;
+}
+.step-num {
+    font-family: 'DM Mono', monospace;
+    font-size: 0.62rem;
+    color: #c8a96e;
+    opacity: 0.7;
+    letter-spacing: 0.1em;
+    display: block;
+    margin-bottom: 0.4rem;
+}
+.step-title {
+    font-family: 'Manrope', sans-serif;
+    font-size: 0.82rem;
+    font-weight: 600;
+    color: #ccc;
+    display: block;
+    margin-bottom: 0.3rem;
+}
+.step-desc {
+    font-family: 'Manrope', sans-serif;
+    font-size: 0.75rem;
+    color: #444;
+    line-height: 1.6;
+}
+
+/* ── Error ── */
+.err {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    color: #c07070;
+    font-family: 'DM Mono', monospace;
+    font-size: 0.78rem;
+    background: rgba(192,112,112,0.06);
+    border: 1px solid rgba(192,112,112,0.15);
+    border-radius: 6px;
+    padding: 0.7rem 1rem;
+    margin-top: 0.5rem;
+}
 
 /* Hide streamlit branding */
 #MainMenu, footer { visibility: hidden; }
@@ -265,31 +399,40 @@ def compression_ratio(original, summary):
 
 st.markdown("""
 <div class="title-block">
-    <h1>Text<span class="accent">Rank</span></h1>
+    <div class="title-badge">NLP · Graph-Based Ranking</div>
+    <h1>Text<em>Rank</em></h1>
     <div class="divider"></div>
-    <p>Extractive Summarization · TextRank Algorithm</p>
+    <p class="subtitle">Extractive Summarization · Pure Python · Zero Dependencies</p>
 </div>
 """, unsafe_allow_html=True)
 
+st.markdown('<div class="section-label">Input Text</div>', unsafe_allow_html=True)
 input_text = st.text_area(
-    "Paste your text here",
-    height=240,
-    placeholder="Paste any article, paragraph, or document here...",
+    label="input",
+    label_visibility="collapsed",
+    height=230,
+    placeholder="Paste any article, essay, or paragraph here — minimum 2 sentences...",
 )
 
-num_sents = st.slider("Number of sentences in summary", min_value=1, max_value=10, value=3)
+col1, col2 = st.columns([3, 1])
+with col1:
+    num_sents = st.slider("Sentences in summary", min_value=1, max_value=10, value=3)
+with col2:
+    st.markdown("<br>", unsafe_allow_html=True)
+    word_count = len(input_text.split()) if input_text else 0
+    st.markdown(f'<div style="font-family:\'DM Mono\',monospace;font-size:0.68rem;color:#3a3a3a;text-align:right;padding-top:0.6rem;">{word_count} words</div>', unsafe_allow_html=True)
 
-summarize_clicked = st.button("✦  Summarize")
+summarize_clicked = st.button("✦  Summarize Text")
 
 if summarize_clicked:
     if not input_text or len(input_text.strip()) < 50:
-        st.markdown('<p class="err">⚠ Please enter at least a few sentences of text.</p>', unsafe_allow_html=True)
+        st.markdown('<div class="err">⚠ Please enter at least a few sentences of text.</div>', unsafe_allow_html=True)
     else:
         sentences = tokenize_sentences(input_text)
         if len(sentences) < 2:
-            st.markdown('<p class="err">⚠ Not enough sentences detected. Try pasting a longer text.</p>', unsafe_allow_html=True)
+            st.markdown('<div class="err">⚠ Not enough sentences detected. Try pasting a longer text.</div>', unsafe_allow_html=True)
         elif num_sents > len(sentences):
-            st.markdown(f'<p class="err">⚠ Text only has {len(sentences)} sentences. Reduce the slider.</p>', unsafe_allow_html=True)
+            st.markdown(f'<div class="err">⚠ Text only has {len(sentences)} sentences. Reduce the slider.</div>', unsafe_allow_html=True)
         else:
             summary_sents = textrank(sentences, num_sentences=num_sents)
             summary = " ".join(summary_sents)
@@ -297,25 +440,60 @@ if summarize_clicked:
             orig_words = len(input_text.split())
             summ_words = len(summary.split())
 
+            # Build numbered sentences HTML
+            sents_html = "".join(
+                f'<span class="sent"><span class="sent-num">{i+1}</span>{s}</span>'
+                for i, s in enumerate(summary_sents)
+            )
+
             st.markdown(f"""
-            <div class="summary-label">Summary</div>
-            <div class="summary-card">{summary}</div>
-            <div class="stats-row">
-                <div class="stat-box">
-                    <span class="stat-num">{orig_words}</span>
-                    <span class="stat-label">Original Words</span>
+            <div class="output-wrapper">
+                <div class="summary-header">
+                    <span class="summary-tag">✦ Summary</span>
+                    <span class="sentence-badge">{num_sents} of {len(sentences)} sentences</span>
                 </div>
-                <div class="stat-box">
-                    <span class="stat-num">{summ_words}</span>
-                    <span class="stat-label">Summary Words</span>
-                </div>
-                <div class="stat-box">
-                    <span class="stat-num">{ratio}%</span>
-                    <span class="stat-label">Compressed</span>
-                </div>
-                <div class="stat-box">
-                    <span class="stat-num">{len(sentences)}</span>
-                    <span class="stat-label">Sentences Found</span>
+                <div class="summary-card">{sents_html}</div>
+                <div class="stats-row">
+                    <div class="stat-box">
+                        <span class="stat-num">{orig_words}</span>
+                        <span class="stat-label">Original Words</span>
+                    </div>
+                    <div class="stat-box">
+                        <span class="stat-num">{summ_words}</span>
+                        <span class="stat-label">Summary Words</span>
+                    </div>
+                    <div class="stat-box">
+                        <span class="stat-num">{ratio}%</span>
+                        <span class="stat-label">Compressed</span>
+                    </div>
+                    <div class="stat-box">
+                        <span class="stat-num">{len(sentences)}</span>
+                        <span class="stat-label">Sentences Found</span>
+                    </div>
                 </div>
             </div>
             """, unsafe_allow_html=True)
+
+# ─── How it works ──────────────────────────────────────────────────────────────
+st.markdown("""
+<div class="how-it-works">
+    <div class="section-label">How TextRank Works</div>
+    <div class="steps-grid">
+        <div class="step-card">
+            <span class="step-num">Step 01</span>
+            <span class="step-title">Sentence Tokenization</span>
+            <span class="step-desc">Input is split into individual sentences and cleaned.</span>
+        </div>
+        <div class="step-card">
+            <span class="step-num">Step 02</span>
+            <span class="step-title">Similarity Matrix</span>
+            <span class="step-desc">Cosine similarity is computed between every sentence pair using word overlap.</span>
+        </div>
+        <div class="step-card">
+            <span class="step-num">Step 03</span>
+            <span class="step-title">PageRank Scoring</span>
+            <span class="step-desc">Sentences are scored iteratively — central sentences rank highest.</span>
+        </div>
+    </div>
+</div>
+""", unsafe_allow_html=True)
