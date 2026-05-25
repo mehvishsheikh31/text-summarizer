@@ -389,6 +389,74 @@ mark.kw {
     margin-top: 0.4rem;
 }
 
+/* ── Sentiment badge ── */
+.sentiment-row {
+    display: flex;
+    align-items: center;
+    gap: 0.7rem;
+    margin-top: 1rem;
+}
+.sentiment-badge {
+    font-family: 'DM Mono', monospace;
+    font-size: 0.65rem;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    border-radius: 20px;
+    padding: 0.3rem 1rem;
+    border: 1px solid;
+}
+.sentiment-positive { color: #7ec87e; border-color: rgba(126,200,126,0.3); background: rgba(126,200,126,0.06); }
+.sentiment-negative { color: #c87e7e; border-color: rgba(200,126,126,0.3); background: rgba(200,126,126,0.06); }
+.sentiment-neutral  { color: #7e9ec8; border-color: rgba(126,158,200,0.3); background: rgba(126,158,200,0.06); }
+.sentiment-label {
+    font-family: 'DM Mono', monospace;
+    font-size: 0.6rem;
+    color: #333;
+    letter-spacing: 0.1em;
+}
+
+/* ── Readability ── */
+.readability-row {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 0.7rem;
+    margin-top: 1rem;
+}
+.readability-box {
+    background: #0a0a0a;
+    border: 1px solid #161616;
+    border-radius: 10px;
+    padding: 1rem 0.8rem;
+    text-align: center;
+}
+.readability-num {
+    font-family: 'DM Serif Display', serif;
+    font-size: 1.5rem;
+    color: #c8a96e;
+    display: block;
+}
+.readability-label {
+    font-family: 'DM Mono', monospace;
+    font-size: 0.53rem;
+    color: #303030;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    display: block;
+    margin-top: 0.3rem;
+}
+.grade-badge {
+    display: inline-block;
+    margin-top: 0.4rem;
+    font-family: 'DM Mono', monospace;
+    font-size: 0.58rem;
+    color: #c8a96e;
+    background: rgba(200,169,110,0.08);
+    border: 1px solid rgba(200,169,110,0.2);
+    border-radius: 10px;
+    padding: 0.15rem 0.55rem;
+    letter-spacing: 0.06em;
+}
+
 /* ── Keyword chips ── */
 .keywords-section { margin-top: 1rem; }
 .kw-row {
@@ -497,6 +565,21 @@ mark.kw {
     line-height: 1.65;
 }
 
+/* ── Warning / info ── */
+.warn-box {
+    display: flex;
+    align-items: center;
+    gap: 0.6rem;
+    color: #c8a96e;
+    font-family: 'DM Mono', monospace;
+    font-size: 0.72rem;
+    background: rgba(200,169,110,0.05);
+    border: 1px solid rgba(200,169,110,0.15);
+    border-radius: 8px;
+    padding: 0.8rem 1.1rem;
+    margin-top: 0.5rem;
+}
+
 /* ── Error ── */
 .err {
     display: flex;
@@ -512,6 +595,15 @@ mark.kw {
     margin-top: 0.5rem;
 }
 
+/* ── Mobile responsive ── */
+@media (max-width: 600px) {
+    .title-block h1 { font-size: 2.8rem; }
+    .stats-row { grid-template-columns: repeat(2, 1fr); }
+    .readability-row { grid-template-columns: repeat(2, 1fr); }
+    .steps-grid { grid-template-columns: 1fr; }
+    .block-container { padding: 1rem 1rem 4rem; }
+}
+
 /* Hide streamlit branding */
 #MainMenu, footer { visibility: hidden; }
 .stDeployButton { display: none; }
@@ -519,8 +611,7 @@ mark.kw {
 """, unsafe_allow_html=True)
 
 
-# ─── TextRank Implementation ───────────────────────────────────────────────────
-
+# ─── Expanded Stopwords ─────────────────────────────────────────────────────────
 STOPWORDS = set([
     "a","an","the","is","it","in","on","at","to","for","of","and","or","but",
     "not","with","this","that","was","are","be","by","as","from","has","have",
@@ -529,40 +620,212 @@ STOPWORDS = set([
     "been","also","more","when","there","which","who","what","how","all","one",
     "no","were","just","would","could","should","these","those","after","before",
     "each","some","such","over","her","him","his","only","same","very","may",
-    "even","two","new","now","most","other","any","between","through","while"
+    "even","two","new","now","most","other","any","between","through","while",
+    # Extended
+    "said","say","says","get","got","make","made","made","like","time","need",
+    "way","use","used","using","come","came","go","went","know","knew","think",
+    "take","took","see","saw","look","looked","want","wanted","give","gave",
+    "find","found","tell","told","ask","asked","seem","seemed","call","called",
+    "keep","kept","let","put","set","show","showed","try","tried","feel","felt",
+    "become","became","leave","left","mean","meant","start","started","turn",
+    "follow","move","play","run","change","different","point","well","back",
+    "first","last","long","great","little","own","right","big","high","place",
+    "end","hand","large","small","next","early","young","important","public",
+    "able","thing","things","people","man","woman","child","world","life","day",
+    "year","years","work","part","place","case","week","company","system","program",
+    "question","government","number","night","group","area","lot","side","problem",
+    "per","cent","mr","ms","mrs","dr","still","must","many","much","often","yet",
+    "again","though","since","without","within","always","never","ever","every",
+    "nothing","something","anything","everything","however","therefore","thus",
+    "although","unless","whether","against","around","because","during","including",
+    "until","along","across","behind","beyond","plus","except","among"
 ])
+
+# ─── Sentiment Word Lists ────────────────────────────────────────────────────────
+POSITIVE_WORDS = set([
+    "good","great","excellent","amazing","wonderful","fantastic","outstanding",
+    "best","better","positive","success","successful","win","winning","achieve",
+    "achievement","benefit","beneficial","effective","efficient","improve","improved",
+    "improvement","increase","increased","growth","strong","strength","powerful",
+    "innovative","innovation","creative","opportunity","opportunities","advance",
+    "advanced","progress","progressive","helpful","useful","valuable","significant",
+    "important","remarkable","impressive","exceptional","superior","perfect",
+    "ideal","optimistic","hope","hopeful","promising","bright","brilliant","smart",
+    "capable","confident","proud","happy","joy","joyful","love","beautiful",
+    "safe","secure","reliable","trustworthy","sustainable","thriving","flourishing",
+    "prosperous","abundant","healthy","energetic","enthusiastic","passionate",
+    "dedicated","committed","innovative","pioneering","leading","breakthrough"
+])
+
+NEGATIVE_WORDS = set([
+    "bad","terrible","awful","horrible","poor","worst","worse","negative","fail",
+    "failure","failing","lose","losing","loss","problem","problems","issue","issues",
+    "concern","concerns","risk","risks","danger","dangerous","harmful","damage",
+    "damaged","decline","declined","decrease","decreased","weak","weakness","crisis",
+    "difficult","difficulty","challenge","challenging","threat","threatening","fear",
+    "fearful","worried","worry","anxious","anxiety","stress","stressful","trouble",
+    "troubled","conflict","controversy","controversial","criticism","criticize",
+    "criticizes","wrong","error","mistake","fault","blame","accused","corrupt",
+    "corruption","violence","violent","attack","attacked","destroy","destroyed",
+    "collapse","collapsing","fail","fatal","serious","severe","extreme","critical",
+    "alarming","shocking","devastating","tragic","tragedy","disaster","catastrophe",
+    "suffering","pain","struggle","struggling","lack","lacking","missing","absent",
+    "inadequate","insufficient","ineffective","inefficient","unstable","uncertain",
+    "unclear","confused","confusing","misleading","false","fake","fraud","scam"
+])
+
+
+# ─── NLP Functions ──────────────────────────────────────────────────────────────
+
+# ── FIX 1: Smarter sentence tokenizer (handles abbreviations) ──
+ABBREVS = r'\b(Mr|Mrs|Ms|Dr|Prof|Sr|Jr|vs|etc|approx|St|Ave|Corp|Inc|Ltd|Fig|No|Dept|Govt|Univ|Assoc|Est)\.'
 
 def clean_text(text):
     text = re.sub(r'\s+', ' ', text).strip()
     return text
 
 def tokenize_sentences(text):
+    """Improved tokenizer that handles abbreviations correctly."""
     text = clean_text(text)
+    # Temporarily protect abbreviation periods
+    text = re.sub(ABBREVS, lambda m: m.group().replace('.', '<DOT>'), text)
+    # Split on sentence-ending punctuation
     sentences = re.split(r'(?<=[.!?])\s+', text)
-    sentences = [s.strip() for s in sentences if len(s.strip()) > 20]
+    # Restore protected periods and filter short fragments
+    sentences = [s.replace('<DOT>', '.').strip() for s in sentences if len(s.strip()) > 20]
     return sentences
 
+def count_syllables(word):
+    """Approximate syllable count for readability scoring."""
+    word = word.lower().strip(".,!?;:")
+    if len(word) <= 3:
+        return 1
+    # Remove silent 'e' at end
+    word = re.sub(r'e$', '', word)
+    # Count vowel groups
+    count = len(re.findall(r'[aeiou]+', word))
+    return max(1, count)
+
+def flesch_score(text):
+    """
+    Flesch Reading Ease score.
+    90-100: Very easy, 70-80: Easy, 60-70: Standard,
+    50-60: Fairly difficult, 30-50: Difficult, 0-30: Very confusing.
+    """
+    sentences = tokenize_sentences(text)
+    words = re.findall(r'\b[a-zA-Z]+\b', text)
+    if not sentences or not words:
+        return 0, 0, "Unknown"
+
+    num_sentences = len(sentences)
+    num_words = len(words)
+    num_syllables = sum(count_syllables(w) for w in words)
+
+    if num_sentences == 0 or num_words == 0:
+        return 0, 0, "Unknown"
+
+    avg_sentence_length = num_words / num_sentences
+    avg_syllables_per_word = num_syllables / num_words
+
+    score = 206.835 - (1.015 * avg_sentence_length) - (84.6 * avg_syllables_per_word)
+    score = max(0, min(100, round(score, 1)))
+
+    if score >= 90:
+        grade = "Very Easy"
+    elif score >= 80:
+        grade = "Easy"
+    elif score >= 70:
+        grade = "Fairly Easy"
+    elif score >= 60:
+        grade = "Standard"
+    elif score >= 50:
+        grade = "Fairly Hard"
+    elif score >= 30:
+        grade = "Difficult"
+    else:
+        grade = "Very Hard"
+
+    return score, round(avg_sentence_length, 1), grade
+
+def analyze_sentiment(text):
+    """Simple lexicon-based sentiment analysis."""
+    words = re.findall(r'\b[a-z]+\b', text.lower())
+    pos_count = sum(1 for w in words if w in POSITIVE_WORDS)
+    neg_count = sum(1 for w in words if w in NEGATIVE_WORDS)
+    total = pos_count + neg_count
+
+    if total == 0:
+        return "Neutral", 0.5
+    pos_ratio = pos_count / total
+    if pos_ratio > 0.6:
+        return "Positive", round(pos_ratio, 2)
+    elif pos_ratio < 0.4:
+        return "Negative", round(1 - pos_ratio, 2)
+    else:
+        return "Neutral", round(pos_ratio, 2)
+
 def get_word_freq(sentences):
-    freq = defaultdict(int)
+    """TF-IDF inspired keyword scoring."""
+    # Term frequency
+    tf = defaultdict(int)
+    doc_freq = defaultdict(int)
+    total_docs = len(sentences)
+
     for sent in sentences:
-        words = re.findall(r'\b[a-z]+\b', sent.lower())
+        words = set(re.findall(r'\b[a-z]+\b', sent.lower()))
+        sent_words = re.findall(r'\b[a-z]+\b', sent.lower())
+        for w in sent_words:
+            if w not in STOPWORDS and len(w) > 2:
+                tf[w] += 1
         for w in words:
             if w not in STOPWORDS and len(w) > 2:
-                freq[w] += 1
-    max_freq = max(freq.values()) if freq else 1
-    for w in freq:
-        freq[w] /= max_freq
-    return freq
+                doc_freq[w] += 1
 
+    # TF-IDF score
+    tfidf = {}
+    for w, freq in tf.items():
+        idf = math.log((total_docs + 1) / (doc_freq[w] + 1)) + 1
+        tfidf[w] = freq * idf
+
+    # Normalize
+    max_score = max(tfidf.values()) if tfidf else 1
+    for w in tfidf:
+        tfidf[w] /= max_score
+    return tfidf
+
+# ── FIX 2: Proper cosine similarity ──
 def cosine_similarity(s1, s2):
-    words1 = set(re.findall(r'\b[a-z]+\b', s1.lower())) - STOPWORDS
-    words2 = set(re.findall(r'\b[a-z]+\b', s2.lower())) - STOPWORDS
-    common = words1 & words2
-    if not words1 or not words2:
-        return 0.0
-    return len(common) / (math.log(len(words1) + 1) + math.log(len(words2) + 1))
+    """Standard cosine similarity using word vectors."""
+    words1 = re.findall(r'\b[a-z]+\b', s1.lower())
+    words2 = re.findall(r'\b[a-z]+\b', s2.lower())
 
-def textrank(sentences, num_sentences=3, damping=0.85, iterations=30):
+    # Build frequency vectors
+    vec1 = defaultdict(int)
+    vec2 = defaultdict(int)
+    for w in words1:
+        if w not in STOPWORDS and len(w) > 2:
+            vec1[w] += 1
+    for w in words2:
+        if w not in STOPWORDS and len(w) > 2:
+            vec2[w] += 1
+
+    if not vec1 or not vec2:
+        return 0.0
+
+    # Dot product
+    common = set(vec1.keys()) & set(vec2.keys())
+    dot = sum(vec1[w] * vec2[w] for w in common)
+
+    # Magnitudes
+    mag1 = math.sqrt(sum(v ** 2 for v in vec1.values()))
+    mag2 = math.sqrt(sum(v ** 2 for v in vec2.values()))
+
+    if mag1 == 0 or mag2 == 0:
+        return 0.0
+    return dot / (mag1 * mag2)
+
+# ── FIX 3: TextRank with early convergence ──
+def textrank(sentences, num_sentences=3, damping=0.85, iterations=50):
     n = len(sentences)
     if n == 0:
         return [], []
@@ -573,18 +836,24 @@ def textrank(sentences, num_sentences=3, damping=0.85, iterations=30):
             if i != j:
                 sim_matrix[i][j] = cosine_similarity(sentences[i], sentences[j])
 
+    # Row normalize
     for i in range(n):
         row_sum = sum(sim_matrix[i])
         if row_sum > 0:
             sim_matrix[i] = [v / row_sum for v in sim_matrix[i]]
 
     scores = [1.0 / n] * n
+    # ── FIX: Early convergence check ──
     for _ in range(iterations):
         new_scores = []
         for i in range(n):
             rank = sum(sim_matrix[j][i] * scores[j] for j in range(n))
             new_scores.append((1 - damping) / n + damping * rank)
+        # Stop early if converged
+        delta = max(abs(new_scores[i] - scores[i]) for i in range(n))
         scores = new_scores
+        if delta < 1e-5:
+            break
 
     ranked = sorted(range(n), key=lambda i: scores[i], reverse=True)
     top_indices = sorted(ranked[:num_sentences])
@@ -598,12 +867,20 @@ def compression_ratio(original, summary):
     return round((1 - summ_words / orig_words) * 100, 1)
 
 def highlight_keywords(text, keywords):
-    """Wrap top keywords in <mark class='kw'> tags."""
     result = text
     for kw in keywords:
         pattern = re.compile(r'\b(' + re.escape(kw) + r')\b', re.IGNORECASE)
         result = pattern.sub(r"<mark class='kw'>\1</mark>", result)
     return result
+
+def detect_language_hint(text):
+    """Very basic check — warns if text looks non-English."""
+    words = re.findall(r'\b[a-zA-Z]+\b', text)
+    total = len(text.split())
+    if total == 0:
+        return True
+    english_ratio = len(words) / total
+    return english_ratio > 0.5  # True = likely English
 
 
 # ─── UI ─────────────────────────────────────────────────────────────────────────
@@ -613,7 +890,7 @@ st.markdown("""
     <div class="title-eyebrow">NLP · Graph-Based Ranking</div>
     <h1>Text<em>Rank</em></h1>
     <div class="title-divider"></div>
-    <p class="subtitle">Extractive Summarization · Pure Python · Zero Dependencies</p>
+    <p class="subtitle">Extractive Summarization · Sentiment · Readability · Pure Python</p>
 </div>
 """, unsafe_allow_html=True)
 
@@ -651,7 +928,11 @@ if uploaded_file is not None:
                 unsafe_allow_html=True
             )
         else:
-            prefill = uploaded_file.read().decode("utf-8")
+            raw = uploaded_file.read()
+            try:
+                prefill = raw.decode("utf-8")
+            except UnicodeDecodeError:
+                prefill = raw.decode("latin-1")
             st.markdown(
                 f'<div style="font-family:\'DM Mono\',monospace;font-size:0.65rem;color:#c8a96e;'
                 f'margin:-0.3rem 0 0.5rem;letter-spacing:0.08em;">✓ {fname} loaded — {len(prefill.split())} words</div>',
@@ -661,18 +942,32 @@ if uploaded_file is not None:
         st.markdown(f'<div class="err">⚠ Could not read file: {e}</div>', unsafe_allow_html=True)
 
 # ── Text Input ──
+# FIX: Use session state so result persists when slider is moved
+if "input_text" not in st.session_state:
+    st.session_state["input_text"] = prefill
+if prefill:
+    st.session_state["input_text"] = prefill
+
 input_text = st.text_area(
     label="input",
     label_visibility="collapsed",
     height=220,
     placeholder="Paste any article, essay, or paragraph here — minimum 2 sentences...",
-    value=prefill,
+    value=st.session_state["input_text"],
+    key="input_box"
 )
+
+# Language hint
+if input_text.strip() and not detect_language_hint(input_text):
+    st.markdown(
+        '<div class="warn-box">⚠ Text appears to be non-English. Results may be inaccurate — this tool is optimized for English.</div>',
+        unsafe_allow_html=True
+    )
 
 # ── Controls ──
 col1, col2, col3 = st.columns([3, 2, 1])
 with col1:
-    num_sents = st.slider("Sentences in summary", min_value=1, max_value=10, value=3)
+    num_sents = st.slider("Sentences in summary", min_value=1, max_value=15, value=3)
 with col2:
     damping = st.slider("Damping factor", min_value=0.50, max_value=0.99, value=0.85, step=0.01,
                         help="PageRank damping — higher = more link-following weight")
@@ -683,11 +978,13 @@ with col3:
         unsafe_allow_html=True
     )
 
-col_a, col_b = st.columns([1, 1])
+col_a, col_b, col_c = st.columns([1, 1, 1])
 with col_a:
-    show_keywords = st.checkbox("Show keyword analysis", value=True)
+    show_keywords = st.checkbox("Keyword analysis", value=True)
 with col_b:
-    show_scores = st.checkbox("Show sentence score chart", value=True)
+    show_scores = st.checkbox("Sentence scores", value=True)
+with col_c:
+    show_extras = st.checkbox("Sentiment & Readability", value=True)
 
 summarize_clicked = st.button("✦  Summarize Text")
 
@@ -699,16 +996,30 @@ if summarize_clicked:
         sentences = tokenize_sentences(input_text)
         if len(sentences) < 2:
             st.markdown('<div class="err">⚠ Not enough sentences detected. Try pasting a longer text.</div>', unsafe_allow_html=True)
-        elif num_sents > len(sentences):
-            st.markdown(f'<div class="err">⚠ Text only has {len(sentences)} sentences. Reduce the slider.</div>', unsafe_allow_html=True)
         else:
-            summary_sents, all_scores = textrank(sentences, num_sentences=num_sents, damping=damping)
+            actual_num = min(num_sents, len(sentences))
+            if num_sents > len(sentences):
+                st.markdown(
+                    f'<div class="warn-box">ℹ Text has {len(sentences)} sentences — showing all {len(sentences)}.</div>',
+                    unsafe_allow_html=True
+                )
+
+            with st.spinner("Ranking sentences..."):
+                summary_sents, all_scores = textrank(sentences, num_sentences=actual_num, damping=damping)
+
             summary = " ".join(summary_sents)
             ratio = compression_ratio(input_text, summary)
             orig_words = len(input_text.split())
             summ_words = len(summary.split())
 
-            # Top keywords
+            # Store in session state so it persists
+            st.session_state["last_summary"] = summary
+            st.session_state["last_ratio"] = ratio
+            st.session_state["last_damping"] = damping
+            st.session_state["last_num_sents"] = actual_num
+            st.session_state["last_sentence_count"] = len(sentences)
+
+            # Keywords via TF-IDF
             freq = get_word_freq(sentences)
             top_keywords = sorted(freq, key=freq.get, reverse=True)[:8]
             top_5_kw = top_keywords[:5]
@@ -723,7 +1034,7 @@ if summarize_clicked:
             <div class="output-wrapper">
                 <div class="summary-header">
                     <span class="summary-tag">Summary</span>
-                    <span class="sentence-badge">{num_sents} of {len(sentences)} sentences · d={damping}</span>
+                    <span class="sentence-badge">{actual_num} of {len(sentences)} sentences · d={damping}</span>
                 </div>
                 <div class="summary-card">{sents_html}</div>
                 <div class="stats-row">
@@ -747,6 +1058,41 @@ if summarize_clicked:
             </div>
             """, unsafe_allow_html=True)
 
+            # ── Sentiment + Readability ──
+            if show_extras:
+                sentiment, confidence = analyze_sentiment(input_text)
+                flesch, avg_sent_len, grade = flesch_score(input_text)
+                sent_class = f"sentiment-{sentiment.lower()}"
+                conf_pct = round(confidence * 100)
+
+                st.markdown(f"""
+                <div class="keywords-section">
+                    <div class="section-label">Sentiment Analysis</div>
+                    <div class="sentiment-row">
+                        <span class="sentiment-badge {sent_class}">{sentiment}</span>
+                        <span class="sentiment-label">{conf_pct}% confidence · based on lexicon scoring</span>
+                    </div>
+                </div>
+                <div class="keywords-section">
+                    <div class="section-label">Readability</div>
+                    <div class="readability-row">
+                        <div class="readability-box">
+                            <span class="readability-num">{flesch}</span>
+                            <span class="readability-label">Flesch Score</span>
+                            <span class="grade-badge">{grade}</span>
+                        </div>
+                        <div class="readability-box">
+                            <span class="readability-num">{avg_sent_len}</span>
+                            <span class="readability-label">Avg Sentence Length</span>
+                        </div>
+                        <div class="readability-box">
+                            <span class="readability-num">{len(sentences)}</span>
+                            <span class="readability-label">Total Sentences</span>
+                        </div>
+                    </div>
+                </div>
+                """, unsafe_allow_html=True)
+
             # ── Keyword Chips ──
             if show_keywords and top_keywords:
                 chips = "".join(
@@ -755,7 +1101,7 @@ if summarize_clicked:
                 )
                 st.markdown(f"""
                 <div class="keywords-section">
-                    <div class="section-label">Top Keywords</div>
+                    <div class="section-label">Top Keywords · TF-IDF</div>
                     <div class="kw-row">{chips}</div>
                 </div>
                 """, unsafe_allow_html=True)
@@ -765,7 +1111,7 @@ if summarize_clicked:
                 max_score = max(all_scores) if all_scores else 1
                 selected_set = set()
                 ranked_idx = sorted(range(len(sentences)), key=lambda i: all_scores[i], reverse=True)
-                for idx in ranked_idx[:num_sents]:
+                for idx in ranked_idx[:actual_num]:
                     selected_set.add(idx)
 
                 bars_html = ""
@@ -789,24 +1135,59 @@ if summarize_clicked:
                 </div>
                 """, unsafe_allow_html=True)
 
-            # ── Download Button ──
+            # ── Download Buttons ──
             st.markdown("<br>", unsafe_allow_html=True)
-            dl_col1, dl_col2, _ = st.columns([1, 1, 2])
+            dl_col1, dl_col2, dl_col3, _ = st.columns([1, 1, 1, 1])
             with dl_col1:
                 st.download_button(
-                    label="↓  Download .txt",
+                    label="↓  .txt",
                     data=summary,
                     file_name="summary.txt",
                     mime="text/plain"
                 )
             with dl_col2:
-                md_content = f"# Summary\n\n{summary}\n\n---\n*{num_sents} sentences · {ratio}% compressed · damping={damping}*"
+                md_content = f"# Summary\n\n{summary}\n\n---\n*{actual_num} sentences · {ratio}% compressed · damping={damping}*"
                 st.download_button(
-                    label="↓  Download .md",
+                    label="↓  .md",
                     data=md_content,
                     file_name="summary.md",
                     mime="text/markdown"
                 )
+            with dl_col3:
+                if show_extras:
+                    report = (
+                        f"# Text Analysis Report\n\n"
+                        f"## Summary\n{summary}\n\n"
+                        f"## Statistics\n"
+                        f"- Original words: {orig_words}\n"
+                        f"- Summary words: {summ_words}\n"
+                        f"- Compression: {ratio}%\n"
+                        f"- Sentences: {len(sentences)}\n\n"
+                        f"## Sentiment\n- Label: {sentiment}\n- Confidence: {conf_pct}%\n\n"
+                        f"## Readability\n- Flesch Score: {flesch} ({grade})\n"
+                        f"- Avg sentence length: {avg_sent_len} words\n\n"
+                        f"## Keywords\n{', '.join(top_keywords)}\n"
+                    )
+                    st.download_button(
+                        label="↓  Report",
+                        data=report,
+                        file_name="analysis_report.md",
+                        mime="text/markdown"
+                    )
+
+# ── Persist summary if slider changes ──
+elif "last_summary" in st.session_state:
+    s = st.session_state
+    st.markdown(f"""
+    <div class="output-wrapper">
+        <div class="summary-header">
+            <span class="summary-tag">Last Summary</span>
+            <span class="sentence-badge">{s['last_num_sents']} of {s['last_sentence_count']} sentences</span>
+        </div>
+        <div class="summary-card">{s['last_summary']}</div>
+    </div>
+    """, unsafe_allow_html=True)
+
 
 # ─── How it works ──────────────────────────────────────────────────────────────
 st.markdown("""
@@ -816,17 +1197,17 @@ st.markdown("""
         <div class="step-card">
             <span class="step-num">Step 01</span>
             <span class="step-title">Sentence Tokenization</span>
-            <span class="step-desc">Input is split into individual sentences, cleaned, and filtered by minimum length.</span>
+            <span class="step-desc">Input is split into sentences using an abbreviation-aware tokenizer, filtered by minimum length.</span>
         </div>
         <div class="step-card">
             <span class="step-num">Step 02</span>
             <span class="step-title">Similarity Matrix</span>
-            <span class="step-desc">Cosine similarity is computed between every sentence pair using word overlap and log-normalization.</span>
+            <span class="step-desc">Standard cosine similarity is computed between every sentence pair using TF-IDF weighted word vectors.</span>
         </div>
         <div class="step-card">
             <span class="step-num">Step 03</span>
             <span class="step-title">PageRank Scoring</span>
-            <span class="step-desc">Sentences are scored iteratively using the damping factor — central sentences rank highest.</span>
+            <span class="step-desc">Sentences are scored iteratively with early convergence detection — central sentences rank highest.</span>
         </div>
     </div>
 </div>
