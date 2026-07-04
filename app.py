@@ -140,11 +140,15 @@ html, body, [data-testid="stAppViewContainer"] {
 }
 .title-block .subtitle {
     font-family: 'DM Mono', monospace;
-    font-size: 0.67rem;
+    font-size: 0.62rem;
     color: #333;
-    letter-spacing: 0.18em;
+    letter-spacing: 0.1em;
     text-transform: uppercase;
     margin-top: 0.9rem;
+    max-width: 480px;
+    margin-left: auto;
+    margin-right: auto;
+    line-height: 1.8;
 }
 .title-divider {
     width: 1px;
@@ -243,6 +247,14 @@ label[data-testid="stWidgetLabel"] {
     letter-spacing: 0.15em !important;
     text-transform: uppercase !important;
 }
+/* Force gold accent instead of Streamlit's default red on the slider thumb/track */
+.stSlider [role="slider"] {
+    background-color: #c8a96e !important;
+    border-color: #c8a96e !important;
+    box-shadow: 0 0 0 2px rgba(200,169,110,0.15) !important;
+}
+.stSlider [data-baseweb="slider"] div[data-testid="stTickBar"] + div { background: #222 !important; }
+.stSlider div[style*="background-color: rgb(255"] { background-color: #c8a96e !important; }
 
 /* ── Checkbox ── */
 .stCheckbox label {
@@ -250,6 +262,23 @@ label[data-testid="stWidgetLabel"] {
     font-family: 'DM Mono', monospace !important;
     font-size: 0.7rem !important;
     letter-spacing: 0.08em !important;
+}
+.stCheckbox [data-baseweb="checkbox"] svg { fill: #080808 !important; }
+.stCheckbox [aria-checked="true"] > div:first-child {
+    background-color: #c8a96e !important;
+    border-color: #c8a96e !important;
+}
+
+/* ── Radio (Summarization mode selector) ── */
+.stRadio label { color: #999 !important; font-family: 'Manrope', sans-serif !important; font-size: 0.85rem !important; }
+.stRadio [data-baseweb="radio"] div:first-child {
+    border-color: #444 !important;
+}
+.stRadio [aria-checked="true"] div:first-child {
+    border-color: #c8a96e !important;
+}
+.stRadio [aria-checked="true"] div:first-child div {
+    background-color: #c8a96e !important;
 }
 
 /* ── Button ── */
