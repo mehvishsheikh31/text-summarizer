@@ -9,6 +9,45 @@ try:
 except ImportError:
     PDF_SUPPORT = False
 
+# ─── Modern NLP (Transformer) Support ──────────────────────────────────────────
+# These give us real semantic understanding instead of raw word-overlap:
+#   - sentence-transformers -> dense sentence embeddings for TextRank similarity
+#   - transformers pipeline  -> BART/DistilBART abstractive summarization
+#   - transformers pipeline  -> DistilBERT (SST-2) sentiment classifier
+try:
+    from sentence_transformers import SentenceTransformer
+    import numpy as np
+    EMBEDDINGS_SUPPORT = True
+except ImportError:
+    EMBEDDINGS_SUPPORT = False
+
+try:
+    from transformers import pipeline
+    TRANSFORMERS_SUPPORT = True
+except ImportError:
+    TRANSFORMERS_SUPPORT = False
+
+
+@st.cache_resource(show_spinner=False)
+def load_embedder():
+    """Loads a small, fast sentence-embedding transformer (~80MB)."""
+    return SentenceTransformer("all-MiniLM-L6-v2")
+
+
+@st.cache_resource(show_spinner=False)
+def load_summarizer():
+    """Loads a distilled BART model fine-tuned for abstractive summarization."""
+    return pipeline("summarization", model="sshleifer/distilbart-cnn-12-6")
+
+
+@st.cache_resource(show_spinner=False)
+def load_sentiment_model():
+    """Loads a DistilBERT model fine-tuned on SST-2 for sentiment classification."""
+    return pipeline(
+        "sentiment-analysis",
+        model="distilbert-base-uncased-finetuned-sst-2-english"
+    )
+
 # ─── Page Config ───────────────────────────────────────────────────────────────
 st.set_page_config(
     page_title="TextRank Summarizer",
@@ -529,7 +568,7 @@ mark.kw {
 }
 .steps-grid {
     display: grid;
-    grid-template-columns: repeat(3, 1fr);
+    grid-template-columns: repeat(4, 1fr);
     gap: 0.85rem;
     margin-top: 1rem;
 }
@@ -747,22 +786,67 @@ def flesch_score(text):
 
     return score, round(avg_sentence_length, 1), grade
 
-def analyze_sentiment(text):
-    """Simple lexicon-based sentiment analysis."""
+def lexicon_sentiment(text):
+    """Fallback: simple lexicon-based sentiment analysis (no model download)."""
     words = re.findall(r'\b[a-z]+\b', text.lower())
     pos_count = sum(1 for w in words if w in POSITIVE_WORDS)
     neg_count = sum(1 for w in words if w in NEGATIVE_WORDS)
     total = pos_count + neg_count
 
     if total == 0:
-        return "Neutral", 0.5
+        return "Neutral", 0.5, "lexicon"
     pos_ratio = pos_count / total
     if pos_ratio > 0.6:
-        return "Positive", round(pos_ratio, 2)
+        return "Positive", round(pos_ratio, 2), "lexicon"
     elif pos_ratio < 0.4:
-        return "Negative", round(1 - pos_ratio, 2)
+        return "Negative", round(1 - pos_ratio, 2), "lexicon"
     else:
-        return "Neutral", round(pos_ratio, 2)
+        return "Neutral", round(pos_ratio, 2), "lexicon"
+
+
+def analyze_sentiment(text):
+    """
+    Transformer-based sentiment analysis using DistilBERT fine-tuned on
+    SST-2. Falls back to lexicon scoring if transformers isn't installed.
+    Long text is chunked (model has a 512-token limit) and chunk scores
+    are averaged.
+    """
+    if not TRANSFORMERS_SUPPORT:
+        return lexicon_sentiment(text)
+
+    try:
+        classifier = load_sentiment_model()
+        # Chunk on sentence boundaries to respect the model's token limit
+        chunks = tokenize_sentences(text) or [text]
+        merged, buf = [], ""
+        for s in chunks:
+            if len(buf) + len(s) < 800:
+                buf += " " + s
+            else:
+                merged.append(buf.strip())
+                buf = s
+        if buf.strip():
+            merged.append(buf.strip())
+
+        results = classifier(merged, truncation=True)
+        pos_scores, neg_scores = [], []
+        for r in results:
+            if r["label"] == "POSITIVE":
+                pos_scores.append(r["score"])
+            else:
+                neg_scores.append(r["score"])
+
+        pos_total, neg_total = sum(pos_scores), sum(neg_scores)
+        if pos_total > neg_total:
+            confidence = pos_total / (len(pos_scores) or 1)
+            label = "Positive" if confidence > 0.6 else "Neutral"
+        else:
+            confidence = neg_total / (len(neg_scores) or 1)
+            label = "Negative" if confidence > 0.6 else "Neutral"
+
+        return label, round(confidence, 2), "distilbert-sst2"
+    except Exception:
+        return lexicon_sentiment(text)
 
 def get_word_freq(sentences):
     """TF-IDF inspired keyword scoring."""
@@ -824,17 +908,38 @@ def cosine_similarity(s1, s2):
         return 0.0
     return dot / (mag1 * mag2)
 
-# ── FIX 3: TextRank with early convergence ──
-def textrank(sentences, num_sentences=3, damping=0.85, iterations=50):
+def embedding_similarity_matrix(sentences):
+    """
+    Modern replacement for word-overlap similarity: encodes every sentence
+    with a transformer (all-MiniLM-L6-v2) and scores pairs by cosine
+    similarity of their dense embeddings. This captures meaning/paraphrase
+    ("the feline sat" ~ "the cat rested") that word-overlap cannot.
+    """
+    embedder = load_embedder()
+    vectors = embedder.encode(sentences, normalize_embeddings=True)
     n = len(sentences)
-    if n == 0:
-        return [], []
-
     sim_matrix = [[0.0] * n for _ in range(n)]
     for i in range(n):
         for j in range(n):
             if i != j:
-                sim_matrix[i][j] = cosine_similarity(sentences[i], sentences[j])
+                sim_matrix[i][j] = float(np.dot(vectors[i], vectors[j]))
+    return sim_matrix
+
+
+# ── FIX 3: TextRank with early convergence ──
+def textrank(sentences, num_sentences=3, damping=0.85, iterations=50, use_embeddings=False):
+    n = len(sentences)
+    if n == 0:
+        return [], []
+
+    if use_embeddings and EMBEDDINGS_SUPPORT:
+        sim_matrix = embedding_similarity_matrix(sentences)
+    else:
+        sim_matrix = [[0.0] * n for _ in range(n)]
+        for i in range(n):
+            for j in range(n):
+                if i != j:
+                    sim_matrix[i][j] = cosine_similarity(sentences[i], sentences[j])
 
     # Row normalize
     for i in range(n):
@@ -858,6 +963,37 @@ def textrank(sentences, num_sentences=3, damping=0.85, iterations=50):
     ranked = sorted(range(n), key=lambda i: scores[i], reverse=True)
     top_indices = sorted(ranked[:num_sentences])
     return [sentences[i] for i in top_indices], scores
+
+def abstractive_summarize(text, max_length=130, min_length=30):
+    """
+    Modern abstractive summarization using a distilled BART model
+    (sshleifer/distilbart-cnn-12-6). Unlike TextRank, this GENERATES new
+    sentences rather than extracting existing ones — the hallmark of
+    modern (transformer-based) NLP summarization.
+
+    BART's encoder caps input around 1024 tokens, so long text is chunked,
+    each chunk is summarized, and the chunk summaries are combined.
+    """
+    if not TRANSFORMERS_SUPPORT:
+        return None
+
+    summarizer = load_summarizer()
+    words = text.split()
+    chunk_size = 600  # ~ safely under the 1024-token BART limit
+    chunks = [" ".join(words[i:i + chunk_size]) for i in range(0, len(words), chunk_size)]
+
+    partial_summaries = []
+    for chunk in chunks:
+        out = summarizer(
+            chunk,
+            max_length=max_length,
+            min_length=min_length,
+            do_sample=False
+        )
+        partial_summaries.append(out[0]["summary_text"].strip())
+
+    return " ".join(partial_summaries)
+
 
 def compression_ratio(original, summary):
     orig_words = len(original.split())
@@ -887,10 +1023,10 @@ def detect_language_hint(text):
 
 st.markdown("""
 <div class="title-block">
-    <div class="title-eyebrow">NLP · Graph-Based Ranking</div>
+    <div class="title-eyebrow">Modern NLP · Transformer-Powered</div>
     <h1>Text<em>Rank</em></h1>
     <div class="title-divider"></div>
-    <p class="subtitle">Extractive Summarization · Sentiment · Readability · Pure Python</p>
+    <p class="subtitle">Extractive (Semantic) + Abstractive (BART) Summarization · DistilBERT Sentiment</p>
 </div>
 """, unsafe_allow_html=True)
 
@@ -964,13 +1100,36 @@ if input_text.strip() and not detect_language_hint(input_text):
         unsafe_allow_html=True
     )
 
+# ── Mode Selector: Modern (Transformer) NLP ──
+mode_options = ["Extractive · Semantic TextRank"]
+if TRANSFORMERS_SUPPORT:
+    mode_options.append("Abstractive · BART Transformer")
+
+summary_mode = st.radio(
+    "Summarization mode",
+    mode_options,
+    horizontal=True,
+    help="Extractive uses sentence-embedding TextRank (picks real sentences). "
+         "Abstractive uses a BART transformer to generate new sentences, like a human paraphrase."
+)
+use_embeddings = EMBEDDINGS_SUPPORT  # semantic similarity is used whenever the model is available
+
+if not TRANSFORMERS_SUPPORT:
+    st.markdown(
+        '<div class="warn-box">ℹ Install `transformers` + `torch` to unlock abstractive '
+        '(BART) summarization and transformer-based sentiment. See requirements.txt.</div>',
+        unsafe_allow_html=True
+    )
+
 # ── Controls ──
 col1, col2, col3 = st.columns([3, 2, 1])
 with col1:
-    num_sents = st.slider("Sentences in summary", min_value=1, max_value=15, value=3)
+    num_sents = st.slider("Sentences in summary", min_value=1, max_value=15, value=3,
+                          disabled=(summary_mode != mode_options[0]))
 with col2:
     damping = st.slider("Damping factor", min_value=0.50, max_value=0.99, value=0.85, step=0.01,
-                        help="PageRank damping — higher = more link-following weight")
+                        help="PageRank damping — higher = more link-following weight",
+                        disabled=(summary_mode != mode_options[0]))
 with col3:
     word_count = len(input_text.split()) if input_text.strip() else 0
     st.markdown(
@@ -997,17 +1156,31 @@ if summarize_clicked:
         if len(sentences) < 2:
             st.markdown('<div class="err">⚠ Not enough sentences detected. Try pasting a longer text.</div>', unsafe_allow_html=True)
         else:
-            actual_num = min(num_sents, len(sentences))
-            if num_sents > len(sentences):
-                st.markdown(
-                    f'<div class="warn-box">ℹ Text has {len(sentences)} sentences — showing all {len(sentences)}.</div>',
-                    unsafe_allow_html=True
-                )
+            is_abstractive = (summary_mode == "Abstractive · BART Transformer")
 
-            with st.spinner("Ranking sentences..."):
-                summary_sents, all_scores = textrank(sentences, num_sentences=actual_num, damping=damping)
+            if is_abstractive:
+                with st.spinner("Generating summary with BART transformer..."):
+                    summary = abstractive_summarize(input_text)
+                summary_sents = tokenize_sentences(summary) if summary else [summary]
+                all_scores = None
+                actual_num = len(summary_sents)
+            else:
+                actual_num = min(num_sents, len(sentences))
+                if num_sents > len(sentences):
+                    st.markdown(
+                        f'<div class="warn-box">ℹ Text has {len(sentences)} sentences — showing all {len(sentences)}.</div>',
+                        unsafe_allow_html=True
+                    )
 
-            summary = " ".join(summary_sents)
+                spinner_msg = "Ranking sentences (semantic embeddings)..." if use_embeddings else "Ranking sentences (word-overlap)..."
+                with st.spinner(spinner_msg):
+                    summary_sents, all_scores = textrank(
+                        sentences, num_sentences=actual_num, damping=damping,
+                        use_embeddings=use_embeddings
+                    )
+
+                summary = " ".join(summary_sents)
+
             ratio = compression_ratio(input_text, summary)
             orig_words = len(input_text.split())
             summ_words = len(summary.split())
@@ -1034,7 +1207,11 @@ if summarize_clicked:
             <div class="output-wrapper">
                 <div class="summary-header">
                     <span class="summary-tag">Summary</span>
-                    <span class="sentence-badge">{actual_num} of {len(sentences)} sentences · d={damping}</span>
+                    <span class="sentence-badge">{
+                        f"{actual_num} of {len(sentences)} sentences · d={damping}"
+                        if not is_abstractive else
+                        f"generated · BART transformer"
+                    }</span>
                 </div>
                 <div class="summary-card">{sents_html}</div>
                 <div class="stats-row">
@@ -1060,17 +1237,18 @@ if summarize_clicked:
 
             # ── Sentiment + Readability ──
             if show_extras:
-                sentiment, confidence = analyze_sentiment(input_text)
+                sentiment, confidence, sentiment_engine = analyze_sentiment(input_text)
                 flesch, avg_sent_len, grade = flesch_score(input_text)
                 sent_class = f"sentiment-{sentiment.lower()}"
                 conf_pct = round(confidence * 100)
+                engine_label = "DistilBERT (SST-2) transformer" if sentiment_engine == "distilbert-sst2" else "lexicon scoring (fallback)"
 
                 st.markdown(f"""
                 <div class="keywords-section">
                     <div class="section-label">Sentiment Analysis</div>
                     <div class="sentiment-row">
                         <span class="sentiment-badge {sent_class}">{sentiment}</span>
-                        <span class="sentiment-label">{conf_pct}% confidence · based on lexicon scoring</span>
+                        <span class="sentiment-label">{conf_pct}% confidence · {engine_label}</span>
                     </div>
                 </div>
                 <div class="keywords-section">
@@ -1192,22 +1370,27 @@ elif "last_summary" in st.session_state:
 # ─── How it works ──────────────────────────────────────────────────────────────
 st.markdown("""
 <div class="how-it-works">
-    <div class="section-label">How TextRank Works</div>
+    <div class="section-label">How the Modern Pipeline Works</div>
     <div class="steps-grid">
         <div class="step-card">
             <span class="step-num">Step 01</span>
-            <span class="step-title">Sentence Tokenization</span>
-            <span class="step-desc">Input is split into sentences using an abbreviation-aware tokenizer, filtered by minimum length.</span>
+            <span class="step-title">Sentence Embeddings</span>
+            <span class="step-desc">Each sentence is encoded by a MiniLM sentence-transformer into a dense vector that captures meaning, not just word overlap.</span>
         </div>
         <div class="step-card">
             <span class="step-num">Step 02</span>
-            <span class="step-title">Similarity Matrix</span>
-            <span class="step-desc">Standard cosine similarity is computed between every sentence pair using TF-IDF weighted word vectors.</span>
+            <span class="step-title">Semantic TextRank</span>
+            <span class="step-desc">Cosine similarity between embeddings builds the sentence graph; PageRank scores which sentences are most central in meaning.</span>
         </div>
         <div class="step-card">
             <span class="step-num">Step 03</span>
-            <span class="step-title">PageRank Scoring</span>
-            <span class="step-desc">Sentences are scored iteratively with early convergence detection — central sentences rank highest.</span>
+            <span class="step-title">Abstractive Generation</span>
+            <span class="step-desc">Optionally, a DistilBART transformer reads the full text and generates a brand-new, paraphrased summary — real language generation, not extraction.</span>
+        </div>
+        <div class="step-card">
+            <span class="step-num">Step 04</span>
+            <span class="step-title">Transformer Sentiment</span>
+            <span class="step-desc">A DistilBERT model fine-tuned on SST-2 classifies tone with contextual understanding, replacing simple keyword counting.</span>
         </div>
     </div>
 </div>
