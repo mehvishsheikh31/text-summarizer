@@ -141,7 +141,7 @@ html, body, [data-testid="stAppViewContainer"] {
 .title-block .subtitle {
     font-family: 'DM Mono', monospace;
     font-size: 0.62rem;
-    color: #333;
+    color: #8f8f8f;
     letter-spacing: 0.1em;
     text-transform: uppercase;
     margin-top: 0.9rem;
@@ -161,7 +161,7 @@ html, body, [data-testid="stAppViewContainer"] {
 .section-label {
     font-family: 'DM Mono', monospace;
     font-size: 0.62rem;
-    color: #383838;
+    color: #8f8f8f;
     letter-spacing: 0.22em;
     text-transform: uppercase;
     margin-bottom: 0.6rem;
@@ -226,7 +226,7 @@ html, body, [data-testid="stAppViewContainer"] {
 .word-counter {
     font-family: 'DM Mono', monospace;
     font-size: 0.65rem;
-    color: #2d2d2d;
+    color: #7a7a7a;
     text-align: right;
     padding-top: 0.5rem;
     letter-spacing: 0.05em;
@@ -236,12 +236,12 @@ html, body, [data-testid="stAppViewContainer"] {
 .stSlider [data-baseweb="slider"] { padding: 0.3rem 0; }
 .stSlider [data-testid="stTickBarMin"],
 .stSlider [data-testid="stTickBarMax"] {
-    color: #2a2a2a !important;
+    color: #6b6b6b !important;
     font-family: 'DM Mono', monospace !important;
     font-size: 0.6rem !important;
 }
 label[data-testid="stWidgetLabel"] {
-    color: #383838 !important;
+    color: #9a9a9a !important;
     font-size: 0.65rem !important;
     font-family: 'DM Mono', monospace !important;
     letter-spacing: 0.15em !important;
@@ -450,7 +450,7 @@ mark.kw {
 .stat-label {
     font-family: 'DM Mono', monospace;
     font-size: 0.55rem;
-    color: #303030;
+    color: #7a7a7a;
     letter-spacing: 0.1em;
     text-transform: uppercase;
     display: block;
@@ -479,7 +479,7 @@ mark.kw {
 .sentiment-label {
     font-family: 'DM Mono', monospace;
     font-size: 0.6rem;
-    color: #333;
+    color: #8f8f8f;
     letter-spacing: 0.1em;
 }
 
@@ -506,7 +506,7 @@ mark.kw {
 .readability-label {
     font-family: 'DM Mono', monospace;
     font-size: 0.53rem;
-    color: #303030;
+    color: #7a7a7a;
     letter-spacing: 0.1em;
     text-transform: uppercase;
     display: block;
@@ -563,7 +563,7 @@ mark.kw {
 .score-idx {
     font-family: 'DM Mono', monospace;
     font-size: 0.6rem;
-    color: #333;
+    color: #8f8f8f;
     text-align: right;
 }
 .score-track {
@@ -585,7 +585,7 @@ mark.kw {
 .score-val {
     font-family: 'DM Mono', monospace;
     font-size: 0.58rem;
-    color: #333;
+    color: #8f8f8f;
     text-align: right;
 }
 
@@ -629,7 +629,7 @@ mark.kw {
 .step-desc {
     font-family: 'Manrope', sans-serif;
     font-size: 0.74rem;
-    color: #383838;
+    color: #8f8f8f;
     line-height: 1.65;
 }
 
